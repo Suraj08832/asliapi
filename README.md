@@ -130,6 +130,32 @@ docker run -p 3000:3000 --env-file .env youtube-api-dl
    - `API_KEY`: Your secure API key
 5. Deploy!
 
+## Heroku Deployment
+
+For detailed Heroku deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+Quick deployment steps:
+
+1. Install Heroku CLI and login:
+```bash
+heroku login
+```
+
+2. Create and deploy your app:
+```bash
+heroku create your-app-name
+heroku stack:set container
+heroku config:set API_KEY=your-secret-api-key
+git push heroku main
+```
+
+3. Open your app:
+```bash
+heroku open
+```
+
+**Note**: Heroku no longer offers a free tier. Basic dynos start at $7/month.
+
 ## Security Notes
 
 - Keep your API key secure and never commit it to the repository
