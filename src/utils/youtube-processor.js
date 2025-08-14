@@ -2,8 +2,8 @@ const { exec: execCallback } = require('child_process');
 const util = require('util');
 const exec = util.promisify(execCallback);
 
-// Base yt-dlp command with common options
-const YT_DLP_PATH = 'yt-dlp';
+// Base yt-dlp command with common options - use full path
+const YT_DLP_PATH = '/usr/local/bin/yt-dlp';
 const YT_DLP_BASE = `${YT_DLP_PATH} --no-check-certificates --no-warnings`;
 
 // Quality presets for single format selection
@@ -25,6 +25,9 @@ function extractYoutubeId(url) {
 
 async function getVideoInfo(url) {
   try {
+    console.log(`Getting video info for: ${url}`);
+    console.log(`Using yt-dlp command: ${YT_DLP_BASE} --format-sort quality --format best -j "${url}"`);
+    
     // Use system yt-dlp command with additional options
     const { stdout, stderr } = await exec(`${YT_DLP_BASE} --format-sort quality --format best -j "${url}"`);
     if (stderr) {
@@ -49,12 +52,15 @@ async function getVideoInfo(url) {
     };
   } catch (error) {
     console.error('Error getting video info:', error);
+    console.error('Command that failed:', `${YT_DLP_BASE} --format-sort quality --format best -j "${url}"`);
     throw error;
   }
 }
 
 async function getDownloadUrl(videoUrl, quality = 'highest') {
   try {
+    console.log(`Getting download URL for: ${videoUrl} with quality: ${quality}`);
+    
     // Get video info first
     const { stdout: infoStr, stderr: infoErr } = await exec(`${YT_DLP_BASE} -j "${videoUrl}"`);
     if (infoErr) {
@@ -65,6 +71,8 @@ async function getDownloadUrl(videoUrl, quality = 'highest') {
     // Get format based on quality preset or use custom format
     const formatArg = QUALITY_PRESETS[quality] || quality;
     
+    console.log(`Using format: ${formatArg}`);
+    
     // Get direct URL with merged format
     const { stdout: urlOutput, stderr: urlErr } = await exec(`${YT_DLP_BASE} --format "${formatArg}" --get-url --no-playlist "${videoUrl}"`);
     if (urlErr) {
@@ -74,6 +82,8 @@ async function getDownloadUrl(videoUrl, quality = 'highest') {
     // Split URLs and get the appropriate one
     const urls = urlOutput.trim().split('\n');
     const downloadUrl = quality === 'audio' ? urls[0] : urls[urls.length - 1];
+
+    console.log(`Got download URL: ${downloadUrl}`);
 
     return {
       url: downloadUrl,
@@ -86,6 +96,7 @@ async function getDownloadUrl(videoUrl, quality = 'highest') {
     };
   } catch (error) {
     console.error('Error getting download URL:', error);
+    console.error('Command that failed:', `${YT_DLP_BASE} -j "${videoUrl}"`);
     throw error;
   }
 }
